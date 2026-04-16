@@ -81,24 +81,36 @@ Returns `409 Conflict` if insufficient stock:
 
 ---
 
-## Your Task: Build the Order Service
+### Starting the Order Service
 
-Open `order-service/` in your IDE. The skeleton is set up with some spring dependencies already configured.
+```bash
+cd order-service
+./mvnw spring-boot:run
+```
+
+Verify it is running:
+```bash
+curl http://localhost:8080/orders/nonexistent
+```
+Expected response:
+```json
+{"message": "Order 'nonexistent' not found"}
+```
+
+> The Order Service depends on the Inventory Service running at `http://localhost:8081`. Start the Inventory Service first.
 
 ---
 
-### Notes
+## Order Service API
 
-- Do not modify the `inventory-service`.
-
-### Required Endpoints
-
-#### Create Order
+### Create Order
 
 ```
 POST /orders
 Content-Type: application/json
+```
 
+```json
 {
   "productId": "BUSINESSCARD",
   "quantity": 2,
@@ -106,12 +118,7 @@ Content-Type: application/json
 }
 ```
 
-**Behaviour:**
-1. Check the product exists in the Inventory Service
-2. Attempt to reserve the requested quantity
-3. Persist the order into a datastore if there's enough stock
-4. Return `201 Created` with the order:
-
+Returns `201 Created` on success:
 ```json
 {
   "orderId": "a1b2c3d4",
@@ -123,16 +130,49 @@ Content-Type: application/json
 }
 ```
 
-**Error cases to handle:**
-- Product not found → `404`
-- Insufficient stock → `409` with a clear message
-- Inventory Service unreachable / times out → `503` with a clear message
-- Invalid request body → `400`
+Returns `409 Conflict` if insufficient stock:
+```json
+{"error": "Insufficient stock for BUSINESSCARD."}
+```
 
-#### Get Order
+Returns `404 Not Found` if the product does not exist.
+
+Returns `503 Service Unavailable` if the Inventory Service is unreachable:
+```json
+{"message": "Inventory service unreachable"}
+```
+
+Returns `400 Bad Request` if the request body is missing or invalid:
+```json
+{
+    "message": "Customer ID is required"
+}
+```
+
+---
+
+### Get Order
 
 ```
 GET /orders/{orderId}
 ```
 
-Returns `200 OK` with the order, or `404` if not found.
+Returns `200 OK`:
+```json
+{
+  "orderId": "a1b2c3d4",
+  "customerId": "cust-123",
+  "productId": "BUSINESSCARD",
+  "quantity": 2,
+  "status": "CONFIRMED",
+  "createdAt": "2024-11-01T10:00:00Z"
+}
+```
+
+Returns `404 Not Found` if the order does not exist:
+
+```json
+{
+    "message": "Order '61f2f755-3495-4b47-b88b-e17fa56e0c5d' not found"
+}
+```
