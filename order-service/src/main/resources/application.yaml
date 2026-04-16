@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:h2:mem:ordersdb
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+
+inventory:
+  service:
+    base-url: http://localhost:8081/inventory
